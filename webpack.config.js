@@ -219,7 +219,7 @@ const webpackConfig = {
 	entry: './src/index.tsx',
 	output: {
 		// The build folder.
-		path: path.resolve('./build/'),
+		path: path.resolve('./package/build/'),
 		// Add /* filename */ comments to generated require()s in the output.
 		pathinfo: !isEnvProduction,
 		// There will be one main bundle, and one file per asynchronous chunk.

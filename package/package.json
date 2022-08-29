@@ -1,0 +1,13 @@
+{
+	"name": "website",
+	"description": "website-fork-aio build",
+	"main": "lib/index.js",
+	"license": "GPLv3",
+	"repository": {
+		"type": "git",
+		"url": "https://git.holy.how/holy/website-fork-aio.git"
+	},
+	"files": [
+		"lib"
+	]
+}
