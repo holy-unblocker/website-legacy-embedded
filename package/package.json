@@ -1,5 +1,6 @@
 {
 	"name": "website",
+	"version": "1.0.0",
 	"description": "website-fork-aio build",
 	"main": "lib/index.js",
 	"license": "GPLv3",
@@ -8,6 +9,7 @@
 		"url": "https://git.holy.how/holy/website-fork-aio.git"
 	},
 	"files": [
-		"lib"
+		"lib",
+		"build"
 	]
 }
