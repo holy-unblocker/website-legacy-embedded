@@ -1,3 +1,3 @@
 /node_modules
-/build/
-/scripts/Ultraviolet-Core/
+/package/build
+/scripts/Ultraviolet-Core
