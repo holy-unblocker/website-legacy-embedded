@@ -6,7 +6,7 @@
 	"private": true,
 	"repository": {
 		"type": "git",
-		"url": "https://git.holy.how/holy/website.git"
+		"url": "https://git.holy.how/holy/website-fork-aio.git"
 	},
 	"dependencies": {
 		"@tomphttp/bare-client": "^1.0.5",

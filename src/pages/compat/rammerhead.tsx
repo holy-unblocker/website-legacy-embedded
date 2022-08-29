@@ -5,6 +5,12 @@ import { Obfuscated } from '../../obfuscate';
 import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 
+function patch(url: string) {
+	// url = _rhsEPrcb://bqhQko.tHR/
+	// remove slash
+	return url.replace(/(^.*?:\/)\//, '$1');
+}
+
 const Rammerhead: HolyPage = ({ compatLayout }) => {
 	useEffect(() => {
 		(async function () {
@@ -53,7 +59,9 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 
 				global.location.replace(
 					new URL(
-						`${session}/${shuffler.shuffle(compatLayout.current!.destination)}`,
+						`${session}/${patch(
+							shuffler.shuffle(compatLayout.current!.destination)
+						)}`,
 						RH_API
 					)
 				);
