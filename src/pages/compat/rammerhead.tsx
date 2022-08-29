@@ -20,13 +20,20 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 				const api = new RammerheadAPI(RH_API);
 
 				// according to our NGINX config
-				if (process.env.NODE_ENV === 'production')
+				if (process.env.NODE_ENV === 'production') {
 					Cookies.set('auth_proxy', '1', {
 						domain: `.${global.location.host}`,
 						expires: 1000 * 60 * 60 * 24 * 7, // 1 week
 						secure: global.location.protocol === 'https:',
 						sameSite: 'lax',
 					});
+
+					Cookies.set('origin_proxy', global.location.origin, {
+						expires: 1000 * 60 * 60 * 24 * 7, // 1 week
+						secure: global.location.protocol === 'https:',
+						sameSite: 'lax',
+					});
+				}
 
 				errorCause = 'Rammerhead server is unreachable.';
 				await fetch(RH_API);
