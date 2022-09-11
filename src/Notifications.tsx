@@ -1,10 +1,9 @@
 import { Obfuscated } from './obfuscate';
-import {
-	CheckCircle,
-	Error as ErrorIcon,
-	Info,
-	Warning,
-} from '@mui/icons-material';
+import styles from './styles/Notifications.module.scss';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import Info from '@mui/icons-material/Info';
+import Warning from '@mui/icons-material/Warning';
 import type SvgIcon from '@mui/material/SvgIcon';
 import clsx from 'clsx';
 import type { ReactElement, ReactNode, RefObject } from 'react';
@@ -60,27 +59,34 @@ function RealNotification({
 			break;
 		default:
 		case 'info':
+			type = 'info';
 			Icon = Info;
 			break;
 	}
 
 	return (
-		<div className={clsx('notification', hide && 'hide', title && 'title')}>
-			<Icon className={`icon ${type}`} />
-			<div className="content">
+		<div
+			className={clsx(
+				styles.notification,
+				hide && styles.hide,
+				title && styles.title
+			)}
+		>
+			<Icon className={clsx(styles.icon, styles[type])} />
+			<div className={styles.content}>
 				{title && (
-					<div className="title">
+					<div className={styles.title}>
 						<Obfuscated>{title}</Obfuscated>
 					</div>
 				)}
 				{description && (
-					<div className="description">
+					<div className={styles.description}>
 						<Obfuscated>{description}</Obfuscated>
 					</div>
 				)}
 			</div>
 			<div
-				className="timer"
+				className={styles.timer}
 				style={{ animationDuration: `${duration / 1000}s` }}
 			/>
 		</div>
@@ -94,8 +100,8 @@ export function Notification(props: NotificationStubProps): JSX.Element {
 }
 
 export interface NotificationsManagerRef {
-	add(notification: ReactElement<Notification>): void;
-	delete(id: string): void;
+	add: (notification: ReactElement<Notification>) => void;
+	delete: (id: string) => void;
 }
 
 const NotificationsManager = forwardRef<NotificationsManagerRef>(
@@ -107,7 +113,7 @@ const NotificationsManager = forwardRef<NotificationsManagerRef>(
 		useImperativeHandle(
 			ref,
 			() => ({
-				add(notification: ReactElement<Notification>) {
+				add: (notification: ReactElement<Notification>) => {
 					const id = Math.random().toString(36);
 					const _notifications = [...notifications];
 
@@ -122,7 +128,7 @@ const NotificationsManager = forwardRef<NotificationsManagerRef>(
 
 					setNotifications(_notifications);
 				},
-				delete(id: string) {
+				delete: (id: string) => {
 					const _notifications = [...notifications];
 
 					for (let i = 0; i < _notifications.length; i++) {
@@ -142,7 +148,7 @@ const NotificationsManager = forwardRef<NotificationsManagerRef>(
 			[notifications, ref]
 		);
 
-		return <div className="notifications">{notifications}</div>;
+		return <div className={styles.notifications}>{notifications}</div>;
 	}
 );
 

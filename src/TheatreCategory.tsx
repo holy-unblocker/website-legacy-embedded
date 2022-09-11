@@ -7,9 +7,10 @@ import { ThemeLink, ThemeSelect } from './ThemeElements';
 import { DB_API } from './consts';
 import isAbortError from './isAbortError';
 import { Obfuscated } from './obfuscate';
-import resolveRoute from './resolveRoute';
+import { getHot } from './routes';
 import styles from './styles/TheatreCategory.module.scss';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -95,10 +96,10 @@ const Category: HolyPage<{
 				errorCause.current = null;
 				setData(data);
 				setLastTotal(data.total);
-			} catch (error) {
-				if (error instanceof Error && isAbortError(error)) {
-					console.error(error);
-					setError(error.toString());
+			} catch (err) {
+				if (isAbortError(err)) {
+					console.error(err);
+					setError(err.toString());
 				}
 			}
 		})();
@@ -128,11 +129,11 @@ const Category: HolyPage<{
 					.
 					<br />
 					If this problem still occurs, check{' '}
-					<ThemeLink to={resolveRoute('/', 'faq')} target="_parent">
+					<ThemeLink to={getHot('faq').path} target="_parent">
 						Support
 					</ThemeLink>{' '}
 					or{' '}
-					<ThemeLink to={resolveRoute('/', 'contact')} target="_parent">
+					<ThemeLink to={getHot('contact').path} target="_parent">
 						Contact Us
 					</ThemeLink>
 					.

@@ -70,14 +70,14 @@ const Ultraviolet: HolyPage = ({ compatLayout }) => {
 						new URL(config.prefix, global.location.toString())
 					)
 				);
-			} catch (error) {
-				compatLayout.current.report(error, errorCause, 'Ultraviolet');
+			} catch (err) {
+				compatLayout.current.report(err, errorCause, 'Ultraviolet');
 			}
 		})();
 	}, [compatLayout]);
 
 	return (
-		<main className="compat">
+		<main>
 			<Scripts ref={uvBundle}>
 				<Script src="/uv/uv.bundle.js" />
 				<Script src="/uv/uv.config.js" />

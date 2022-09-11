@@ -1,0 +1,45 @@
+/**
+ * Common utils
+ * This file should only contain SCSS mixins and variables
+ */
+
+$scrollbar-width: 16px;
+$fixed-width: calc(100vw - $scrollbar-width);
+
+@mixin screen_mobile {
+	@media only screen and (max-width: 650px) {
+		@content;
+	}
+}
+
+@mixin shimmer($width, $name) {
+	@keyframes #{$name} {
+		0% {
+			background-position: -#{calc($width / 2)} 0px;
+		}
+
+		to {
+			background-position: #{calc($width / 2)} 0px;
+		}
+	}
+}
+
+@mixin newShimmerSmall() {
+	@include shimmer(240px, shimmerSmall);
+}
+
+@mixin newShimmerCard() {
+	@include shimmer(470px, shimmerCard);
+}
+
+@mixin newShimmerLarge() {
+	@include shimmer(940px, shimmerLarge);
+}
+
+@mixin newShimmerLarger() {
+	@include shimmer(1880px, shimmerLarger);
+}
+
+@mixin newShimmerWide() {
+	@include shimmer(200vw, shimmerWide);
+}

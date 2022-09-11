@@ -5,12 +5,13 @@ import type { ServiceFrameRef } from '../ServiceFrame';
 import { ThemeInputBar, ThemeLink, themeStyles } from '../ThemeElements';
 import { BARE_API } from '../consts';
 import engines from '../engines';
-import isAbortError from '../isAbortError';
+import isAbortError, { isFailedToFetch } from '../isAbortError';
 import { Obfuscated } from '../obfuscate';
-import resolveRoute from '../resolveRoute';
+import { getHot } from '../routes';
 import styles from '../styles/Proxy.module.scss';
 import textContent from '../textContent';
-import { NorthWest, Search } from '@mui/icons-material';
+import NorthWest from '@mui/icons-material/NorthWest';
+import Search from '@mui/icons-material/Search';
 import BareClient from '@tomphttp/bare-client';
 import clsx from 'clsx';
 import { createRef, useMemo, useRef, useState } from 'react';
@@ -63,14 +64,12 @@ const SearchBar = ({ layout }: { layout: LayoutDump['layout'] }) => {
 					/<span class="sa_tm_text">(.*?)<\/span>/g
 				))
 					entries.push(phrase);
-			} catch (error) {
-				if (error instanceof Error) {
+			} catch (err) {
+				if (!isAbortError(err) && isFailedToFetch(err)) {
 					// likely abort error
-					if (error.message === 'Failed to fetch') {
-						console.error('Error fetching Bare server.');
-					} else if (!isAbortError(error)) {
-						throw error;
-					}
+					console.error('Error fetching Bare server.');
+				} else {
+					throw err;
 				}
 			}
 
@@ -244,7 +243,7 @@ const Proxies: HolyPage = ({ layout }) => {
 					If you're having issues with the proxy, try troubleshooting your
 					problem by looking at the
 				</Obfuscated>{' '}
-				<ThemeLink to={resolveRoute('/', 'faq')}>
+				<ThemeLink to={getHot('faq').path}>
 					<Obfuscated>FAQ</Obfuscated>
 				</ThemeLink>
 				.

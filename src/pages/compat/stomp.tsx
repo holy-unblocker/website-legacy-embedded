@@ -79,14 +79,14 @@ const Stomp: HolyPage = ({ compatLayout }) => {
 				errorCause = undefined;
 
 				global.location.replace(boot.html(compatLayout.current.destination));
-			} catch (error) {
-				compatLayout.current.report(error, errorCause, 'Stomp');
+			} catch (err) {
+				compatLayout.current.report(err, errorCause, 'Stomp');
 			}
 		})();
 	}, [compatLayout, bootstrapper]);
 
 	return (
-		<main className="compat">
+		<main>
 			<Script src="/stomp/bootstrapper.js" ref={bootstrapper} />
 			Loading <Obfuscated>Stomp</Obfuscated>...
 		</main>

@@ -1,16 +1,15 @@
 import type { LayoutDump } from './App';
+import { isDatabaseError } from './DatabaseAPI';
 import { Notification } from './Notifications';
 import resolveProxy from './ProxyResolver';
 import { BARE_API } from './consts';
 import { decryptURL, encryptURL } from './cryptURL';
 import { Obfuscated } from './obfuscate';
 import styles from './styles/Service.module.scss';
-import {
-	ChevronLeft,
-	Fullscreen,
-	OpenInNew,
-	Public,
-} from '@mui/icons-material';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import Fullscreen from '@mui/icons-material/Fullscreen';
+import OpenInNew from '@mui/icons-material/OpenInNew';
+import Public from '@mui/icons-material/Public';
 import BareClient from '@tomphttp/bare-client';
 import { useRef } from 'react';
 import {
@@ -24,7 +23,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 
 export interface ServiceFrameRef {
-	proxy(src: string): void;
+	proxy: (src: string) => void;
 }
 
 const ServiceFrame = forwardRef<
@@ -59,14 +58,12 @@ const ServiceFrame = forwardRef<
 
 					iframe.current.contentWindow.location.href = proxiedSrc;
 					setLastSrc(proxiedSrc);
-				} catch (error) {
-					console.error(error);
+				} catch (err) {
+					console.error(err);
 					layout.current!.notifications.current!.add(
 						<Notification
 							title="Unable to find compatible proxy"
-							description={
-								error instanceof Error ? error.message : String(error)
-							}
+							description={isDatabaseError(err) ? err.message : String(err)}
 							type="error"
 						/>
 					);
@@ -84,7 +81,7 @@ const ServiceFrame = forwardRef<
 	}, [iframe, layout, src]);
 
 	useImperativeHandle(ref, () => ({
-		proxy(src: string) {
+		proxy: (src: string) => {
 			search.has('query') && decryptURL(search.get('query')! as string);
 			setSearch({
 				...Object.fromEntries(search),
@@ -115,7 +112,7 @@ const ServiceFrame = forwardRef<
 			// * didn't hook our call to new Function
 			try {
 				setLastSrc(contentWindow.location.href);
-			} catch (error) {
+			} catch (err) {
 				// possibly an x-frame error
 				return;
 			}

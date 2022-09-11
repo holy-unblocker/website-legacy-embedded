@@ -13,12 +13,11 @@ import categories from '../../../gameCategories';
 import type { Category } from '../../../gameCategories';
 import isAbortError from '../../../isAbortError';
 import { Obfuscated } from '../../../obfuscate';
-import resolveRoute from '../../../resolveRoute';
+import { getHot } from '../../../routes';
 import styles from '../../../styles/TheatreCategory.module.scss';
-import { ArrowForward } from '@mui/icons-material';
+import ArrowForward from '@mui/icons-material/ArrowForward';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 const entryLimit = 8;
 const loadingCategories: LoadingCategoryData = {
@@ -58,10 +57,10 @@ const Popular: HolyPage = () => {
 				});
 
 				setData(data);
-			} catch (error) {
-				if (error instanceof Error && !isAbortError(error)) {
-					console.error(error);
-					setError(error.toString());
+			} catch (err) {
+				if (!isAbortError(err)) {
+					console.error(err);
+					setError(String(err));
 				}
 			}
 		})();
@@ -92,11 +91,11 @@ const Popular: HolyPage = () => {
 					.
 					<br />
 					If this problem still occurs, check{' '}
-					<ThemeLink to={resolveRoute('/', 'faq')} target="_parent">
+					<ThemeLink to={getHot('faq').path} target="_parent">
 						Support
 					</ThemeLink>{' '}
 					or{' '}
-					<ThemeLink to={resolveRoute('/', 'contact')} target="_parent">
+					<ThemeLink to={getHot('contact').path} target="_parent">
 						Contact Us
 					</ThemeLink>
 					.
@@ -131,15 +130,15 @@ const Popular: HolyPage = () => {
 					<section className={styles.expand} key={section.category.id}>
 						<div className={styles.name}>
 							<h1>{section.category.name}</h1>
-							<Link
-								to={`${resolveRoute('/theatre/', 'category')}?id=${
+							<ThemeLink
+								to={`${getHot('theatre games category').path}?id=${
 									section.category.id
 								}`}
-								className="theme-link see-all"
+								className={styles.seeAll}
 							>
 								See All
 								<ArrowForward />
-							</Link>
+							</ThemeLink>
 						</div>
 						<ItemList
 							className={clsx(styles.items, styles.flex)}
