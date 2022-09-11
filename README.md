@@ -1,5 +1,10 @@
 # Holy Unblocker website
 
+## Why the fork?
+
+- Provide structure for packaging the frontend NPM package for [website-aio](https://github.com/holy-unblocker/website-aio)
+- Add [Rammerhead hooks](./src/pages/compat/rammerhead.tsx)
+
 ## Who/What this repository is for
 
 This repository contains the base Holy Unblocker website. This includes tools and dependencies used to compile the website (Webpack, React) and development tools (ESLint, Prettier).
