@@ -11,6 +11,6 @@
 	},
 	"files": [
 		"lib",
-		"build"
+		"dist"
 	]
 }
