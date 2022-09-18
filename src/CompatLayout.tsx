@@ -1,7 +1,6 @@
-import { ThemeA, ThemeLink } from './ThemeElements';
+import CommonError from './CommonError';
 import { decryptURL } from './cryptURL';
-import { ObfuscateLayout, Obfuscated } from './obfuscate';
-import { getHot } from './routes';
+import i18n from './i18n';
 import type { ReactNode } from 'react';
 import {
 	forwardRef,
@@ -10,7 +9,8 @@ import {
 	useMemo,
 	useState,
 } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { Location } from 'react-router-dom';
 
 function loadScript(
 	src: string
@@ -55,7 +55,7 @@ export interface ScriptsRef {
 /**
  * Loads multiple scripts
  */
-export const Scripts = forwardRef<ScriptsRef, { children: ReactNode }>(
+export const Scripts = forwardRef<ScriptsRef, { children?: ReactNode }>(
 	function Scripts({ children }, ref) {
 		const [promise, promiseExternal] = useMemo(
 			() => createPromiseExternal<void>(),
@@ -144,14 +144,28 @@ export const Script = forwardRef<ScriptRef, { src: string }>(function Script(
 	return <></>;
 });
 
+/**
+ *
+ * @param location Derived from useLocation
+ * @returns
+ */
+export const getDestination = (location: Location) => {
+	if (location.hash === '') throw new Error(i18n.t('compat.error.hash'));
+
+	try {
+		return decryptURL(location.hash.slice(1));
+	} catch (err) {
+		throw new Error(i18n.t('compat.error.decryptURL'));
+	}
+};
+
 export interface CompatLayoutRef {
-	destination: string;
 	report: (error: unknown, cause: string | undefined, origin: string) => void;
 }
 
-export default forwardRef<CompatLayoutRef, { children: ReactNode }>(
+export default forwardRef<CompatLayoutRef, { children?: ReactNode }>(
 	function CompatLayout({ children }, ref) {
-		const location = useLocation();
+		const { t } = useTranslation();
 
 		const [error, setError] = useState<{
 			error: string;
@@ -162,11 +176,6 @@ export default forwardRef<CompatLayoutRef, { children: ReactNode }>(
 		useImperativeHandle(
 			ref,
 			() => ({
-				get destination() {
-					if (location.hash === '') throw new Error('No hash was provided');
-
-					return decryptURL(location.hash.slice(1));
-				},
 				report: (error: unknown, cause: string | undefined, origin: string) => {
 					console.error(error);
 
@@ -177,45 +186,16 @@ export default forwardRef<CompatLayoutRef, { children: ReactNode }>(
 					});
 				},
 			}),
-			[location]
+			[]
 		);
 
 		return (
 			<>
-				<ObfuscateLayout />
 				{error ? (
-					<main className="error">
-						{' '}
-						<span>
-							An error occured when loading{' '}
-							<Obfuscated>{error.origin}</Obfuscated>:
-							<br />
-							<pre>{error.cause || error.error}</pre>
-						</span>
-						<p>
-							Try again by clicking{' '}
-							<ThemeA
-								href="i:"
-								onClick={(event) => {
-									event.preventDefault();
-									global.location.reload();
-								}}
-							>
-								here
-							</ThemeA>
-							.
-							<br />
-							If this problem still occurs, check our{' '}
-							<ThemeLink to={getHot('faq').path} target="_parent">
-								FAQ
-							</ThemeLink>{' '}
-							or{' '}
-							<ThemeLink to={getHot('contact').path} target="_parent">
-								Contact Us
-							</ThemeLink>
-							.
-						</p>
-					</main>
+					<CommonError
+						error={error.cause || error.error}
+						message={t('compat.error.generic', { what: error.origin })}
+					/>
 				) : (
 					children
 				)}

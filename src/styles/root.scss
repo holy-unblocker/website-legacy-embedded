@@ -59,7 +59,7 @@ h3 {
 
 #root {
 	width: $fixed-width;
-	font-family: 'Lato', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-family: 'Lato';
 	font-weight: 400;
 	color: var(--text);
 	display: flex;
@@ -74,6 +74,12 @@ main {
 	padding: 0px 5%;
 	margin: 20px 0px;
 	flex: none;
+
+	&.error {
+		pre {
+			white-space: break-spaces;
+		}
+	}
 }
 
 input {

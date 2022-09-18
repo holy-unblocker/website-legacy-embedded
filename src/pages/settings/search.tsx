@@ -1,45 +1,50 @@
 import type { HolyPage } from '../../App';
+import { useGlobalSettings } from '../../Layout';
 import { ThemeSelect } from '../../ThemeElements';
 import engines from '../../engines';
 import { Obfuscated } from '../../obfuscate';
 import styles from '../../styles/Settings.module.scss';
+import { useTranslation } from 'react-i18next';
 
-const Search: HolyPage = ({ layout }) => {
+const Search: HolyPage = () => {
+	const { t } = useTranslation();
+	const [settings, setSettings] = useGlobalSettings();
+
 	return (
 		<section>
 			<div>
-				<span>
-					<Obfuscated>Proxy</Obfuscated>:
-				</span>
+				<p>
+					<Obfuscated>{t('settings.proxy')}</Obfuscated>:
+				</p>
 				<ThemeSelect
-					className={styles.themeSelect}
+					className={styles.ThemeSelect}
 					onChange={(event) =>
-						layout.current!.setSettings({
-							...layout.current!.settings,
+						setSettings({
+							...settings,
 							proxy: event.target.value,
 						})
 					}
-					defaultValue={layout.current!.settings.proxy}
+					defaultValue={settings.proxy}
 				>
-					<option value="automatic">Automatic (Default)</option>
+					<option value="automatic">{t('settings.automaticProxy')}</option>
 					<option value="ultraviolet">Ultraviolet</option>
 					<option value="rammerhead">Rammerhead</option>
 					<option value="stomp">Stomp</option>
 				</ThemeSelect>
 			</div>
 			<div>
-				<span>
-					<Obfuscated>Search Engine</Obfuscated>:
-				</span>
+				<p>
+					<Obfuscated>{t('settings.searchEngine')}</Obfuscated>:
+				</p>
 				<ThemeSelect
-					className={styles.themeSelect}
+					className={styles.ThemeSelect}
 					onChange={(event) =>
-						layout.current!.setSettings({
-							...layout.current!.settings,
+						setSettings({
+							...settings,
 							search: event.target.value,
 						})
 					}
-					defaultValue={layout.current!.settings.search}
+					defaultValue={settings.search}
 				>
 					{engines.map(({ name, format }) => (
 						<option key={format} value={format}>
