@@ -1,4 +1,5 @@
 import './env.js';
+import HotHTMLPlugin from './HotHTMLPlugin.js';
 import type { CSSLoaderOptions } from './css-loader.js';
 import { envRaw, envRawHash, envRawStringified } from './env.js';
 import hotRoutes from './src/routes.js';
@@ -15,7 +16,7 @@ import glob from 'glob';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { createRequire } from 'module';
-import { relative, basename, resolve, join, extname } from 'path';
+import { relative, basename, resolve, join } from 'path';
 import InlineChunkHtmlPlugin from 'react-dev-utils/InlineChunkHtmlPlugin.js';
 import ModuleNotFoundPlugin from 'react-dev-utils/ModuleNotFoundPlugin.js';
 import getCSSModuleLocalIdent from 'react-dev-utils/getCSSModuleLocalIdent.js';
@@ -29,11 +30,11 @@ import type {
 	AssetInfo,
 	Configuration,
 	RuleSetRule,
+	WebpackPluginInstance,
 } from 'webpack';
 import webpack from 'webpack';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import type { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
-import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 
 const globA = promisify(glob);
 // import BasicWebpackObfuscator from 'basic-webpack-obfuscator';
@@ -198,6 +199,34 @@ for (const pattern of copyPluginPatterns) {
 	for (const x of await globA(join(fromRes, '{*.mjs,*.js}'))) {
 		const xRel = relative(fromRes, x);
 		terserPluginExclude.push(relative(distPath, join(toRes, xRel)));
+	}
+}
+
+class DefineUVPlugin implements WebpackPluginInstance {
+	apply(compiler: Compiler) {
+		compiler.hooks.compilation.tap('DefineUV', (compilation: Compilation) => {
+			compilation.hooks.processAssets.tap(
+				{
+					name: 'DefineUV',
+					stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
+				},
+				(assets: AssetInfo) => {
+					const config = assets['uv/uv.config.js'];
+
+					if (!config) return;
+
+					const content = config.buffer().toString();
+
+					assets['uv/uv.config.js'] = new webpack.sources.RawSource(
+						content.replace(
+							/process\.env\.(\w+)/g,
+							(match: string, target: string) =>
+								target in envRaw ? JSON.stringify(envRaw[target]) : 'undefined'
+						)
+					);
+				}
+			);
+		});
 	}
 }
 
@@ -472,10 +501,14 @@ const webpackConfig: Configuration = {
 	},
 	plugins: (
 		[
+			// unused assets
 			new CleanWebpackPlugin(),
+			// copy static files such as UV, Stomp, Ruffle
 			new CopyPlugin({
 				patterns: copyPluginPatterns,
 			}),
+			// Define process.env constants in uv.config.js
+			new DefineUVPlugin(),
 			// Inlines the webpack runtime script. This script is too small to warrant
 			// a network request.
 			// https://github.com/facebook/create-react-app/issues/5358
@@ -483,117 +516,8 @@ const webpackConfig: Configuration = {
 				shouldInlineRuntimeChunk &&
 				new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime-.+[.]js/]),
 			// Generates an `index.html` file with the <script> injected.
-			// Hot as in attractive. We are attaching all descendants of the route's chunk (that we calculate) to the HTML for optimal performance.
-			{
-				apply: (compiler: Compiler) =>
-					compiler.hooks.compilation.tap(
-						'Hot HTML',
-						(compilation: Compilation) => {
-							HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tap(
-								'Hot HTML',
-								(x) => {
-									return x;
-								}
-							);
-
-							HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tap(
-								'Hot HTML',
-								(data) => {
-									const hot = hotRoutes.find(
-										(hot) => hot.file === data.outputName
-									);
-
-									if (!hot) throw new Error(`Bad hot file: ${data.outputName}`);
-
-									type ChunkID = string | number;
-
-									const stats = compilation.getStats().toJson();
-
-									const pages = new Map<
-										string,
-										{
-											chunks: ChunkID[];
-											pattern: '*' | string;
-										}
-									>();
-
-									// FIND NESTED CHUNKS
-
-									for (const chunk of stats.chunks!) {
-										const origin = chunk.origins![0].request;
-										const pattern =
-											origin && !chunk.entry
-												? origin === hot.src
-													? hot.path
-													: undefined
-												: '*';
-
-										if (pattern)
-											pages.set(chunk.id as string, {
-												chunks: [chunk.id!, ...chunk.siblings!],
-												// hot,
-												pattern,
-											});
-									}
-
-									const assets: string[] = [];
-
-									for (const [, page] of pages) {
-										for (const chunk of stats.chunks!) {
-											if (!page.chunks!.includes(chunk.id!)) continue;
-
-											for (const asset of chunk.files!)
-												if (!assets.includes(asset)) assets.push(asset);
-
-											for (const module of chunk.modules!)
-												for (const asset of module.assets!)
-													if (!assets.includes(asset as string))
-														assets.push(asset as string);
-										}
-									}
-
-									// reset assets, by default the main bundle is injected
-									// we don't do anything beyond correcting styles and scripts
-									// html-webpack-plugin can catch a manifest or favicon we missed
-
-									data.assetTags.styles.length = 0;
-									data.assetTags.scripts.length = 0;
-
-									for (const asset of assets.reverse()) {
-										const abs = data.publicPath + asset;
-
-										switch (extname(asset)) {
-											case '.js':
-												data.assetTags.scripts.push({
-													tagName: 'script',
-													attributes: {
-														src: abs,
-														defer: true,
-													},
-													meta: {},
-													voidTag: false,
-												});
-												break;
-											case '.css':
-												data.assetTags.styles.push({
-													tagName: 'link',
-													attributes: {
-														rel: 'stylesheet',
-														href: abs,
-													},
-													meta: {},
-													voidTag: true,
-												});
-												break;
-										}
-									}
-
-									return data;
-								}
-							);
-						}
-					),
-			},
+			// Relevant to hotRoutes
+			new HotHTMLPlugin(),
 			...hotRoutes.map(
 				(hot) =>
 					new HtmlWebpackPlugin({
@@ -632,38 +556,6 @@ const webpackConfig: Configuration = {
 					filename: 'static/css/[name].[contenthash:8].css',
 					chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
 				}),
-			// Generate an asset manifest file with the following content:
-			// - "files" key: Mapping of all asset filenames to their corresponding
-			//   output file so that tools can pick it up without having to parse
-			//   `index.html`
-			// - "entrypoints" key: Array of files which are included in `index.html`,
-			//   can be used to reconstruct the HTML if necessary
-			new WebpackManifestPlugin({
-				fileName: 'asset-manifest.json',
-				publicPath: '/',
-				generate: (seed, files, entrypoints) => {
-					const manifestFiles = files.reduce((manifest, file) => {
-						manifest[file.name] = file.path;
-						return manifest;
-					}, seed);
-					const entrypointFiles = entrypoints.main.filter(
-						(fileName) => !fileName.endsWith('.map')
-					);
-
-					return {
-						files: manifestFiles,
-						entrypoints: entrypointFiles,
-					};
-				},
-			}),
-			// Moment.js is an extremely popular library that bundles large locale files
-			// by default due to how webpack interprets its code. This is a practical
-			// solution that requires the user to opt into importing specific locales.
-			// https://github.com/jmblog/how-to-optimize-momentjs-with-webpack
-			// You can remove this if you don't use Moment.js:
-			new webpack.IgnorePlugin({
-				resourceRegExp: /^\.\/locale$/,
-			}),
 			process.env.WEBPACK_BUNDLE_ANALYZER === 'true' &&
 				new BundleAnalyzerPlugin({
 					analyzerMode: 'static',
@@ -679,43 +571,6 @@ const webpackConfig: Configuration = {
 					cache: true,
 					cacheLocation: resolve('node_modules/.cache/.eslintcache'),
 				}),
-			{
-				apply: (compiler: Compiler) => {
-					compiler.hooks.compilation.tap(
-						'DefineUV',
-						(compilation: Compilation) => {
-							compilation.hooks.processAssets.tap(
-								{
-									name: 'DefineUV',
-									stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
-								},
-								(assets: AssetInfo) => {
-									const config = assets['uv/uv.config.js'];
-
-									if (!config) return;
-
-									const content = config.buffer().toString();
-
-									assets['uv/uv.config.js'] = new webpack.sources.RawSource(
-										content.replace(
-											/process\.env\.(\w+)/g,
-											(match: string, target: string) =>
-												target in envRaw
-													? JSON.stringify(envRaw[target])
-													: 'undefined'
-										)
-									);
-								}
-							);
-						}
-					);
-				},
-			},
-			/*!isDevelopment &&
-				new BasicWebpackObfuscator({
-					sourceMap: shouldUseSourceMap,
-				}),*/
-			// new RouterPlugin(),
 		] as (PluginEntry | false)[]
 	).filter(Boolean) as PluginEntry[],
 	// Turn off performance processing because we utilize
