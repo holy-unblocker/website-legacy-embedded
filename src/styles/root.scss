@@ -1,6 +1,6 @@
 @import './fonts/Lato.scss';
 @import './fonts/MontserratAlternates.scss';
-@import './Theme.scss';
+@import './theme.scss';
 @import './common.scss';
 
 html {
@@ -47,7 +47,7 @@ h3 {
 	}
 }
 
-/*@include screen_mobile {
+/*@include screenMobile {
 	#root {
 		width: 100%;
 	}
