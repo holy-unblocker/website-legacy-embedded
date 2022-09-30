@@ -12,11 +12,11 @@ export default async function resolveProxy(src: string, setting: string) {
 		try {
 			setting = (await api.compat(host)).proxy;
 		} catch (err) {
-			if (isDatabaseError(err) && err.message === 'Not Found') {
-				setting = DEFAULT_PROXY;
-			} else {
-				console.error(err);
-				throw err;
+			setting = DEFAULT_PROXY;
+
+			if (!isDatabaseError(err) || err.message === 'Not Found') {
+				// ignore error to allow loading proxy regardless of errors
+				console.error('Failure fetching Compat data:', err);
 			}
 		}
 	}
