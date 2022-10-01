@@ -6,6 +6,7 @@ import hotRoutes from './src/routes.js';
 import type swcrcSchema from './swcrc.js';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import type { JsMinifyOptions } from '@swc/core';
+import { stompPath } from '@sysce/stomp';
 import CaseSensitivePathsPlugin from 'case-sensitive-paths-webpack-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
@@ -20,7 +21,6 @@ import { relative, basename, resolve, join } from 'path';
 import InlineChunkHtmlPlugin from 'react-dev-utils/InlineChunkHtmlPlugin.js';
 import ModuleNotFoundPlugin from 'react-dev-utils/ModuleNotFoundPlugin.js';
 import getCSSModuleLocalIdent from 'react-dev-utils/getCSSModuleLocalIdent.js';
-import { stompPath } from 'stomp';
 import TerserPlugin from 'terser-webpack-plugin';
 import { uvPath } from 'ultraviolet';
 import { promisify } from 'util';
@@ -160,6 +160,10 @@ const copyPluginPatterns: {
 	filter?: CopyPlugin.Filter;
 }[] = [
 	{
+		from: './public',
+		filter: (file) => file !== resolve('public/index.html'),
+	},
+	{
 		from: stompPath,
 		to: 'stomp',
 	},
@@ -168,18 +172,10 @@ const copyPluginPatterns: {
 		to: 'uv',
 	},
 	{
-		from: './uv',
-		to: 'uv',
-	},
-	{
 		from: resolve('node_modules/@ruffle-rs/ruffle'),
 		// don't filter licenses!
 		filter: (file) => !['package.json', 'README.md'].includes(basename(file)),
 		to: 'ruffle',
-	},
-	{
-		from: './public',
-		filter: (file) => file !== resolve('public/index.html'),
 	},
 ];
 
