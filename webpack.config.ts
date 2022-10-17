@@ -3,26 +3,25 @@ import HotHTMLPlugin from './HotHTMLPlugin.js';
 import type { CSSLoaderOptions } from './css-loader.js';
 import { envRaw, envRawHash, envRawStringified } from './env.js';
 import hotRoutes from './src/routes.js';
-import type swcrcSchema from './swcrc.js';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import type { JsMinifyOptions } from '@swc/core';
-import { stompPath } from '@sysce/stomp';
+import stompPath from '@sysce/stomp';
+import uvPath from '@titaniumnetwork-dev/ultraviolet';
 import CaseSensitivePathsPlugin from 'case-sensitive-paths-webpack-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin';
-import ESLintPlugin from 'eslint-webpack-plugin';
+import ESLintWebpackPlugin from 'eslint-webpack-plugin';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import glob from 'glob';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import { createRequire } from 'module';
-import { relative, basename, resolve, join } from 'path';
+import { createRequire } from 'node:module';
+import { relative, basename, resolve, join } from 'node:path';
 import InlineChunkHtmlPlugin from 'react-dev-utils/InlineChunkHtmlPlugin.js';
 import ModuleNotFoundPlugin from 'react-dev-utils/ModuleNotFoundPlugin.js';
 import getCSSModuleLocalIdent from 'react-dev-utils/getCSSModuleLocalIdent.js';
 import TerserPlugin from 'terser-webpack-plugin';
-import { uvPath } from 'ultraviolet';
 import { promisify } from 'util';
 import type {
 	Compiler,
@@ -381,7 +380,7 @@ const webpackConfig: Configuration = {
 								target: 'es2015',
 								externalHelpers: true,
 							},
-						} as swcrcSchema,
+						},
 					},
 					// Process any JS outside of the app with SWC.
 					// Unlike the application JS, we only compile the standard ES features.
@@ -396,7 +395,7 @@ const webpackConfig: Configuration = {
 								target: 'es2015',
 								externalHelpers: true,
 							},
-						} as swcrcSchema,
+						},
 					},
 					// "postcss" loader applies autoprefixer to our CSS.
 					// "css" loader resolves paths in CSS and adds assets as dependencies.
@@ -558,7 +557,7 @@ const webpackConfig: Configuration = {
 				}),
 			shouldLint && new ForkTsCheckerWebpackPlugin(),
 			shouldLint &&
-				new ESLintPlugin({
+				new ESLintWebpackPlugin({
 					// Plugin options
 					extensions: ['js', 'mjs', 'jsx', 'ts', 'tsx'],
 					formatter: require.resolve('react-dev-utils/eslintFormatter'),
