@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "1.0.1",
+	"version": "v1.0.0-build.2022.10.17",
 	"description": "website-fork-aio build",
 	"main": "lib/index.js",
 	"type": "module",
