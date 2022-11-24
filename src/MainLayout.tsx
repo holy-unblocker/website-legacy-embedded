@@ -4,7 +4,7 @@ import { ReactComponent as HatDev } from './assets/hat-dev.svg';
 import { ReactComponent as HatPlain } from './assets/hat.svg';
 import categories from './gameCategories';
 import { Obfuscated, ObfuscatedA } from './obfuscate';
-import { getHot } from './routes';
+import { PUBLIC_PATH, getHot } from './routes';
 import styles from './styles/Navigation.module.scss';
 import Apps from '@mui/icons-material/Apps';
 import Home from '@mui/icons-material/Home';
@@ -40,6 +40,7 @@ export function MenuTab({
 	name,
 	className,
 	onClick,
+	iconClassName,
 	iconFilled,
 	iconOutlined,
 }: {
@@ -48,6 +49,7 @@ export function MenuTab({
 	name: string;
 	className?: string;
 	onClick?: MouseEventHandler;
+	iconClassName?: string;
 	iconFilled: ReactNode;
 	iconOutlined?: ReactNode;
 }) {
@@ -55,7 +57,7 @@ export function MenuTab({
 	const selected = location.pathname === route;
 	const content = (
 		<>
-			<span className={styles.icon}>
+			<span className={clsx(styles.icon, iconClassName)}>
 				{(selected && iconFilled) || iconOutlined || iconFilled}
 			</span>
 			<span className={styles.name}>
@@ -143,7 +145,7 @@ const MainLayout = forwardRef<
 				<div className={styles.button} onClick={() => setExpanded(true)}>
 					<Menu />
 				</div>
-				<Link to="/" className={clsx(styles.entry, styles.logo)}>
+				<Link to={PUBLIC_PATH} className={clsx(styles.entry, styles.logo)}>
 					<Hat />
 				</Link>
 				<div className={styles.shiftRight}></div>
@@ -159,7 +161,7 @@ const MainLayout = forwardRef<
 							<Menu />
 						</div>
 						<Link
-							to="/"
+							to={PUBLIC_PATH}
 							className={clsx(styles.entry, styles.logo)}
 							onClick={closeMenu}
 						>
