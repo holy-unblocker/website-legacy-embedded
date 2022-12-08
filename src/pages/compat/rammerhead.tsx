@@ -15,7 +15,7 @@ function patch(url: string) {
 }
 
 const Rammerhead: HolyPage = ({ compatLayout }) => {
-	const { t } = useTranslation();
+	const { t } = useTranslation('compat');
 	const location = useLocation();
 
 	useEffect(() => {
@@ -34,18 +34,11 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 						sameSite: 'lax',
 					});
 
-					Cookies.set('origin_proxy', global.location.origin, {
-						expires: 1000 * 60 * 60 * 24 * 7, // 1 week
-						secure: global.location.protocol === 'https:',
-						sameSite: 'lax',
-					});
-				}
-
-				errorCause = i18n.t('compat.error.unreachable', { what: 'Rammerhead' });
+				errorCause = i18n.t('compat:error.unreachable', { what: 'Rammerhead' });
 				await fetch(RH_API);
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat.error.rammerheadSavedSession');
+				errorCause = i18n.t('compat:error.rammerheadSavedSession');
 
 				if (
 					localStorage.rammerhead_session &&
@@ -63,18 +56,18 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 					delete localStorage.rammerhead_session;
 				}
 
-				errorCause = i18n.t('compat.error.rammerheadNewSession');
+				errorCause = i18n.t('compat:error.rammerheadNewSession');
 				const session =
 					localStorage.rammerhead_session || (await api.newSession());
 				errorCause = undefined;
 
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat.error.rammerheadEditSession');
+				errorCause = i18n.t('compat:error.rammerheadEditSession');
 				await api.editSession(session, false, true);
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat.error.rammerheadDict');
+				errorCause = i18n.t('compat:error.rammerheadDict');
 				const dict = await api.shuffleDict(session);
 				errorCause = undefined;
 
@@ -92,7 +85,7 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 		})();
 	}, [compatLayout, location]);
 
-	return <main>{t('compat.loading', { what: 'Rammerhead' })}</main>;
+	return <main>{t('loading', { what: 'Rammerhead' })}</main>;
 };
 
 export default Rammerhead;

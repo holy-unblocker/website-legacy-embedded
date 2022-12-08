@@ -1,3 +1,4 @@
+import { OBFUSCATE } from './consts';
 import clsx from 'clsx';
 import type { RandomSeed } from 'random-seed';
 import { create } from 'random-seed';
@@ -42,6 +43,8 @@ const charClass = unusedChar();
 const stringClass = unusedChar();
 
 export const ObfuscateLayout = () => {
+	if (!OBFUSCATE) return <></>;
+
 	const style =
 		`${junkClasses
 			.map((junk) => `.${stringClass} .${junk}`)
@@ -95,6 +98,8 @@ class ObfuscateContext {
 
 export const ObfuscatedText = memo<{ text: string; ellipsis?: boolean }>(
 	function ObfuscatedText({ text, ellipsis }) {
+		if (!OBFUSCATE) return <>{text}</>;
+
 		const context = new ObfuscateContext(text);
 
 		const output = [];
@@ -162,6 +167,8 @@ interface JSXData {
  */
 export const Obfuscated = memo<{ ellipsis?: boolean; children?: ReactNode }>(
 	function Obfuscated({ ellipsis, children }) {
+		if (!OBFUSCATE) return <>{children}</>;
+
 		let string = '';
 
 		const stack: JSXData[] = [
@@ -195,11 +202,14 @@ export const Obfuscated = memo<{ ellipsis?: boolean; children?: ReactNode }>(
 	}
 );
 
-export interface ObfuscatedAProps extends HTMLAttributes<HTMLSpanElement> {
+export interface ObfuscatedAProps
+	extends HTMLAttributes<HTMLSpanElement | HTMLAnchorElement> {
 	href: string;
 	target?: string;
-	onClick?: MouseEventHandler<HTMLSpanElement>;
-	onMouseUp?: MouseEventHandler<HTMLSpanElement>;
+	onClick?: MouseEventHandler<HTMLSpanElement | HTMLAnchorElement>;
+	onMouseUp?: MouseEventHandler<HTMLSpanElement | HTMLAnchorElement>;
+	// would be optional if this wasn't for accessibility
+	title: string;
 }
 
 export function ObfuscatedA({
@@ -208,8 +218,23 @@ export function ObfuscatedA({
 	onClick,
 	onMouseUp,
 	target,
+	title,
 	...attributes
 }: ObfuscatedAProps) {
+	if (!OBFUSCATE)
+		return (
+			<a
+				{...attributes}
+				href={href}
+				onClick={onClick}
+				onMouseUp={onMouseUp}
+				target={target}
+				title={title}
+			>
+				{children}
+			</a>
+		);
+
 	return (
 		<span
 			{...attributes}
@@ -233,6 +258,7 @@ export function ObfuscatedA({
 					window.open(href, target || '_self');
 				}
 			}}
+			title={title}
 		>
 			{children}
 		</span>

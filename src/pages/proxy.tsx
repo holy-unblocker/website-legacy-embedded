@@ -1,5 +1,6 @@
 import type { HolyPage, LayoutDump } from '../App';
 import { useGlobalSettings } from '../Layout';
+import Meta from '../Meta';
 import resolveProxy from '../ProxyResolver';
 import SearchBuilder from '../SearchBuilder';
 import ServiceFrame from '../ServiceFrame';
@@ -22,7 +23,7 @@ import { createRef, useMemo, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 const SearchBar = ({ layout }: { layout: LayoutDump['layout'] }) => {
-	const { t } = useTranslation();
+	const { t } = useTranslation('proxy');
 	const input = useRef<HTMLInputElement | null>(null);
 	const inputValue = useRef<string | null>(null);
 	const lastInput = useRef<'select' | 'input' | null>(null);
@@ -136,7 +137,7 @@ const SearchBar = ({ layout }: { layout: LayoutDump['layout'] }) => {
 					<Search className={themeStyles.icon} />
 					<input
 						type="text"
-						placeholder={t('proxy.search', {
+						placeholder={t('search', {
 							engine: engine.name,
 						})}
 						required={lastSelect === -1}
@@ -259,14 +260,44 @@ const FAQLink = ({ children }: { children?: ReactNode }) => (
 	</ThemeLink>
 );
 
+const ProxyMeta = () => (
+	<Meta
+		title="Proxy"
+		description="Bypass blocks on your internet traffic with Holy Unblocker's web proxy."
+		faq={[
+			{
+				name: 'What web proxies does Holy Unblocker have?',
+				acceptedAnswer: {
+					text: 'Ultraviolet, Rammerhead, and Stomp. You can change the default proxy in your settings.',
+				},
+			},
+		]}
+		actions={[
+			{
+				target: {
+					urlTemplate:
+						new URL(getHot('proxy').path, global.location.toString()) +
+						'?q={search_term_string}',
+				},
+				'query-input': 'required name=search_term_string',
+			},
+		]}
+	/>
+);
+
 const Proxies: HolyPage = ({ layout }) => {
+	const { t } = useTranslation('proxy');
+
 	return (
-		<main className={styles.main}>
-			<SearchBar layout={layout} />
-			<p>
-				<Trans i18nKey="proxy.faq" components={[<FAQLink />]} />
-			</p>
-		</main>
+		<>
+			<ProxyMeta />
+			<main className={styles.main}>
+				<SearchBar layout={layout} />
+				<p>
+					<Trans t={t} i18nKey="faq" components={[<FAQLink />]} />
+				</p>
+			</main>
+		</>
 	);
 };
 

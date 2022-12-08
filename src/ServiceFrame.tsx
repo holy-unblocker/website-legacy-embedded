@@ -3,6 +3,7 @@ import { isDatabaseError } from './DatabaseAPI';
 import { useGlobalSettings } from './Layout';
 import { Notification } from './Notifications';
 import resolveProxy from './ProxyResolver';
+import SearchBuilder from './SearchBuilder';
 import { BARE_API } from './consts';
 import { decryptURL, encryptURL } from './cryptURL';
 import i18n from './i18n';
@@ -39,14 +40,24 @@ const ServiceFrame = forwardRef<
 	const [lastSrc, setLastSrc] = useState('');
 	const bare = useMemo(() => new BareClient(BARE_API), []);
 	const linksTried = useMemo(() => new WeakMap(), []);
-
-	const src = useMemo(
-		() => (search.has('query') ? decryptURL(search.get('query')!) : ''),
-		[search]
-	);
+	const [settings] = useGlobalSettings();
+	const src = search.has('src') ? decryptURL(search.get('src')!) : '';
 	const [title, setTitle] = useState(src);
 	const [icon, setIcon] = useState('');
-	const [settings] = useGlobalSettings();
+
+	useEffect(() => {
+		// allow querying eg ?q+hello+world
+		if (search.has('q')) {
+			const newQuery = encryptURL(
+				new SearchBuilder(settings.search).query(search.get('q')!)
+			);
+			search.delete('q');
+			setSearch({
+				...Object.fromEntries(search),
+				src: newQuery,
+			});
+		}
+	}, [search, setSearch, settings.search]);
 
 	useEffect(() => {
 		if (src) {
@@ -62,13 +73,13 @@ const ServiceFrame = forwardRef<
 					console.error(err);
 					layout.current!.notifications.current!.add(
 						<Notification
-							title={i18n.t('proxy.error.compatibleProxy') as string}
+							title={i18n.t('proxy:error.compatibleProxy') as string}
 							description={isDatabaseError(err) ? err.message : String(err)}
 							type="error"
 						/>
 					);
 
-					search.delete('query');
+					search.delete('src');
 
 					setSearch({
 						...Object.fromEntries(search),
@@ -90,7 +101,7 @@ const ServiceFrame = forwardRef<
 		proxy: (src: string) => {
 			setSearch({
 				...Object.fromEntries(search),
-				query: encryptURL(src),
+				src: encryptURL(src),
 			});
 		},
 	}));
@@ -173,7 +184,7 @@ const ServiceFrame = forwardRef<
 				<ChevronLeft
 					className={styles.button}
 					onClick={() => {
-						search.delete('query');
+						search.delete('src');
 						setSearch(search);
 					}}
 				/>

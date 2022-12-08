@@ -1,0 +1,11 @@
+export { default as commonError } from '../assets/locales/en/commonError.json';
+export { default as compat } from '../assets/locales/en/compat.json';
+export { default as credits } from '../assets/locales/en/credits.json';
+export { default as faq } from '../assets/locales/en/faq.json';
+export { default as gameCategory } from '../assets/locales/en/gameCategory.json';
+export { default as landing } from '../assets/locales/en/landing.json';
+export { default as link } from '../assets/locales/en/link.json';
+export { default as notFound } from '../assets/locales/en/notFound.json';
+export { default as proxy } from '../assets/locales/en/proxy.json';
+export { default as settings } from '../assets/locales/en/settings.json';
+export { default as theatre } from '../assets/locales/en/theatre.json';

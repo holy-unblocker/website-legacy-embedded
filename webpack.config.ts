@@ -1,8 +1,9 @@
 import './env.js';
 import HotHTMLPlugin from './HotHTMLPlugin.js';
 import type { CSSLoaderOptions } from './css-loader.js';
-import { envRaw, envRawHash, envRawStringified } from './env.js';
-import hotRoutes, { PUBLIC_PATH } from './src/routes.js';
+import { envRaw, envRawHash, envRawStringified, PUBLIC_PATH } from './env.js';
+import type { RouteType } from './src/appRoutes.js';
+import { getRoutes } from './src/appRoutes.js';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import type { JsMinifyOptions } from '@swc/core';
 import stompPath from '@sysce/stomp';
@@ -51,6 +52,10 @@ declare module 'webpack' {
 		devServer?: WebpackDevServerConfiguration;
 	}
 }
+
+const routeType = process.env.REACT_APP_ROUTER! as RouteType;
+
+const hotRoutes = getRoutes(routeType, PUBLIC_PATH);
 
 const shouldLint = process.env.DISABLE_LINT !== 'true';
 
@@ -471,10 +476,6 @@ const webpackConfig: Configuration = {
 							'sass-loader'
 						),
 					},
-					{
-						test: [/locales.*?\.json$/],
-						type: 'asset/resource',
-					},
 					// "file" loader makes sure those assets get served by WebpackDevServer.
 					// When you `import` an asset, you get its (virtual) filename.
 					// In production, they would get copied to the `build` folder.
@@ -513,7 +514,13 @@ const webpackConfig: Configuration = {
 				new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime-.+[.]js/]),
 			// Generates an `index.html` file with the <script> injected.
 			// Relevant to hotRoutes
-			new HotHTMLPlugin(),
+			new HotHTMLPlugin((outputName) =>
+				hotRoutes.find(
+					(hot) =>
+						hot.file ===
+						(outputName.startsWith('one/') ? outputName.slice(4) : outputName)
+				)
+			),
 			...hotRoutes.map(
 				(hot) =>
 					new HtmlWebpackPlugin({
