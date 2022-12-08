@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "1.0.0-holy.4",
+	"version": "1.0.0-holy.5",
 	"description": "website-fork-aio build",
 	"main": "lib/index.js",
 	"type": "module",
