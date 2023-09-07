@@ -5,7 +5,7 @@ import { ReactComponent as HatPlain } from './assets/hat.svg';
 import type { categoryKey } from './gameCategories';
 import categories from './gameCategories';
 import { Obfuscated, ObfuscatedA } from './obfuscate';
-import { PUBLIC_PATH, getHot } from './routes';
+import { VITE_PUBLIC_PATH, getHot } from './routes';
 import styles from './styles/Navigation.module.scss';
 import Apps from '@mui/icons-material/Apps';
 import Home from '@mui/icons-material/Home';
@@ -25,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 
 function Hat(props: SVGAttributes<{}>) {
-	switch (process.env.REACT_APP_HAT_BADGE) {
+	switch (import.meta.env.VITE_HAT_BADGE) {
 		case 'DEV':
 			return <HatDev {...props} />;
 		case 'BETA':
@@ -44,6 +44,8 @@ export function MenuTab({
 	iconClassName,
 	iconFilled,
 	iconOutlined,
+	tabIndex,
+	isNew,
 }: {
 	route?: string;
 	href?: string;
@@ -53,6 +55,8 @@ export function MenuTab({
 	iconClassName?: string;
 	iconFilled: ReactNode;
 	iconOutlined?: ReactNode;
+	tabIndex?: number;
+	isNew?: boolean;
 }) {
 	const location = useLocation();
 	const selected = location.pathname === route;
@@ -64,6 +68,7 @@ export function MenuTab({
 			<span className={styles.name}>
 				<Obfuscated ellipsis>{name}</Obfuscated>
 			</span>
+			{isNew && <span className={styles.new}>new</span>}
 		</>
 	);
 
@@ -75,6 +80,7 @@ export function MenuTab({
 				className={clsx(styles.entry, className)}
 				onClick={onClick}
 				title={name}
+				tabIndex={tabIndex}
 			>
 				{content}
 			</ObfuscatedA>
@@ -87,6 +93,7 @@ export function MenuTab({
 				className={clsx(styles.entry, className)}
 				title={name}
 				onClick={onClick}
+				tabIndex={tabIndex}
 			>
 				{content}
 			</Link>
@@ -113,7 +120,7 @@ const MainLayout = forwardRef<
 			expanded,
 			setExpanded,
 		}),
-		[expanded, setExpanded]
+		[expanded, setExpanded],
 	);
 
 	useEffect(() => {
@@ -142,40 +149,60 @@ const MainLayout = forwardRef<
 
 	const { t } = useTranslation(['link', 'gameCategory']);
 
+	const menuTabIndex = expanded ? undefined : -1;
+
 	return (
 		<>
 			<nav className={styles.nav}>
-				<div className={styles.button} onClick={() => setExpanded(true)}>
+				<button
+					className={styles.button}
+					onClick={() =>
+						// user may toggle this button again when using tab
+						setExpanded(!expanded)
+					}
+				>
 					<Menu />
-				</div>
+				</button>
 				<Link
-					to={PUBLIC_PATH + '/'}
+					to={VITE_PUBLIC_PATH + '/'}
 					className={clsx(styles.entry, styles.logo)}
 					title="Home"
 				>
 					<Hat />
 				</Link>
 				<div className={styles.shiftRight}></div>
+				{/* we want the user to tab into the button, not the link so it looks right */}
 				<Link
-					className={styles.button}
 					to={getHot('settings appearance').path}
 					title="Home"
+					tabIndex={-1}
 				>
-					<Settings />
+					<button className={styles.button}>
+						<Settings />
+					</button>
 				</Link>
 			</nav>
 			<div className={styles.content}>
-				<div className={clsx(styles.cover)} onClick={closeMenu}></div>
-				<div tabIndex={0} className={styles.menu}>
+				<div
+					tabIndex={-1}
+					className={clsx(styles.cover)}
+					onClick={() => setExpanded(false)}
+				/>
+				<div className={styles.menu}>
 					<div className={styles.top}>
-						<div className={styles.button} onClick={closeMenu}>
+						<div
+							className={styles.button}
+							onClick={closeMenu}
+							tabIndex={expanded ? -1 : undefined}
+						>
 							<Menu />
 						</div>
 						<Link
-							to={PUBLIC_PATH + '/'}
+							to={VITE_PUBLIC_PATH + '/'}
 							className={clsx(styles.entry, styles.logo)}
 							title="Home"
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						>
 							<Hat />
 						</Link>
@@ -187,18 +214,21 @@ const MainLayout = forwardRef<
 							iconFilled={<Home />}
 							iconOutlined={<HomeOutlined />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 						<MenuTab
 							route={getHot('proxy').path}
 							name={t('link:proxy')}
 							iconFilled={<WebAsset />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 						<MenuTab
 							route={getHot('faq').path}
 							name={t('link:faq')}
 							iconFilled={<QuestionMark />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 
 						<div className={styles.bar} />
@@ -208,6 +238,7 @@ const MainLayout = forwardRef<
 							name={t('link:theatreApps')}
 							iconFilled={<Apps />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 
 						<MenuTab
@@ -216,6 +247,7 @@ const MainLayout = forwardRef<
 							iconFilled={<StarRounded />}
 							iconOutlined={<StarOutlineRounded />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 
 						<div className={styles.bar} />
@@ -229,12 +261,14 @@ const MainLayout = forwardRef<
 							name={t('link:theatreGamesPopular')}
 							iconFilled={<SortRounded />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 						<MenuTab
 							route={getHot('theatre games all').path}
 							name={t('link:theatreGamesAll')}
 							iconFilled={<List />}
 							onClick={closeMenu}
+							tabIndex={menuTabIndex}
 						/>
 						<div className={styles.title}>{t('link:nav.genre')}</div>
 						<div className={styles.genres}>
@@ -247,17 +281,18 @@ const MainLayout = forwardRef<
 									title={t(
 										`gameCategory:${
 											(category.id + (category.short ? '_' : '')) as categoryKey
-										}`
+										}`,
 									)}
 									className={clsx(styles.entry, styles.text)}
 									onClick={() => setExpanded(false)}
+									tabIndex={menuTabIndex}
 								>
 									<Obfuscated>
 										{t(
 											`gameCategory:${
 												(category.id +
 													(category.short ? '_' : '')) as categoryKey
-											}`
+											}`,
 										)}
 									</Obfuscated>
 								</Link>

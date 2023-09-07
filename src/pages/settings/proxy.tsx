@@ -19,7 +19,7 @@ const Search: HolyPage = () => {
 			<section>
 				<div>
 					<p>
-						<Obfuscated>{t('link:proxy')}</Obfuscated>:
+						<Obfuscated>{t('settings:proxy.engine')}</Obfuscated>:
 					</p>
 					<ThemeSelect
 						className={styles.ThemeSelect}
@@ -34,7 +34,6 @@ const Search: HolyPage = () => {
 						<option value="automatic">{t('settings:automaticProxy')}</option>
 						<option value="ultraviolet">Ultraviolet</option>
 						<option value="rammerhead">Rammerhead</option>
-						<option value="stomp">Stomp</option>
 					</ThemeSelect>
 				</div>
 				<div>

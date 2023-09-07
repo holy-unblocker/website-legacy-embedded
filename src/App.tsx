@@ -1,9 +1,9 @@
+import '@fontsource/lato';
+import '@fontsource/lato/700.css';
+import '@fontsource/montserrat-alternates';
 import './styles/root.scss';
-import './styles/fonts/Lato.scss';
-import './styles/fonts/MontserratAlternates.scss';
 import './styles/theme.scss';
 import './styles/TheatrePlayer.scss';
-import './styles/ThemeElements.scss';
 import './styles/Service.scss';
 import type { CompatLayoutRef } from './CompatLayout';
 import CompatLayout from './CompatLayout';
@@ -31,6 +31,11 @@ export interface LayoutProps {
 	componentProps: LayoutProps;
 }
 
+const pages = import.meta.glob('./pages/**/*.tsx') as Record<
+	string,
+	() => Promise<{ default: HolyPage }>
+>;
+
 // https://reactrouter.com/docs/en/v6/getting-started/overview
 export default function App() {
 	const layout = useRef<LayoutRef | null>(null);
@@ -41,7 +46,7 @@ export default function App() {
 
 	for (let i = 0; i < hotRoutes.length; i++) {
 		const hot = hotRoutes[i];
-		const Component = lazy(hot.import);
+		const Component = lazy(pages[hot.src]);
 
 		const suspended = (
 			<Suspense fallback={<></>}>
@@ -68,7 +73,7 @@ export default function App() {
 						<MainLayout ref={mainLayout}>{suspended}</MainLayout>
 					)
 				}
-			/>
+			/>,
 		);
 	}
 

@@ -75,7 +75,9 @@
 				height: 100%;
 				opacity: 0;
 				background-color: rgba(0, 0, 0, 0.2);
-				transition: opacity 0.1s, visibility 0.1s;
+				transition:
+					opacity 0.1s,
+					visibility 0.1s;
 				cursor: pointer;
 				visibility: hidden;
 				position: absolute;
@@ -131,7 +133,7 @@
 				> .control {
 					display: flex;
 					flex-direction: row;
-					font-family: 'Montserrat Alternates';
+					font-family: $MontserratAlternates;
 					justify-content: space-around;
 					align-items: center;
 					margin: 3px 0px;

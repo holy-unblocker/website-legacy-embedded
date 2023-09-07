@@ -2,8 +2,7 @@ import type { HolyPage } from '../../App';
 import type { ScriptsRef } from '../../CompatLayout';
 import { getDestination, Script, Scripts } from '../../CompatLayout';
 import { BARE_API, SERVICEWORKERS } from '../../consts';
-import i18n from '../../i18n';
-import { PUBLIC_PATH } from '../../routes';
+import { VITE_PUBLIC_PATH } from '../../routes';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -38,30 +37,30 @@ const Ultraviolet: HolyPage = ({ compatLayout }) => {
 
 			try {
 				if (!SERVICEWORKERS) {
-					errorCause = i18n.t('compat:error.swHTTPS');
+					errorCause = t('error.swHTTPS');
 					throw new Error(errorCause);
 				}
 
 				if (!navigator.serviceWorker) {
-					errorCause = i18n.t('compat:error.swSupport');
+					errorCause = t('error.swSupport');
 					throw new Error(errorCause);
 				}
 
-				errorCause = i18n.t('compat:error.generic');
+				errorCause = t('error.generic', { what: 'Ultraviolet' });
 				await uvBundle.current.promise;
 				errorCause = undefined;
 
 				const config = __uv$config;
 
 				// register sw
-				errorCause = i18n.t('compat:error.registeringSW');
-				await navigator.serviceWorker.register(PUBLIC_PATH + '/uv/sw.js', {
+				errorCause = t('error.registeringSW');
+				await navigator.serviceWorker.register(`${VITE_PUBLIC_PATH}/uv/sw.js`, {
 					scope: config.prefix,
 					updateViaCache: 'none',
 				});
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat:error.unreachable', { what: 'Bare' });
+				errorCause = t('error.unreachable', { what: 'Bare' });
 				{
 					const bare = await fetch(BARE_API);
 					if (!bare.ok) {
@@ -70,23 +69,23 @@ const Ultraviolet: HolyPage = ({ compatLayout }) => {
 				}
 				errorCause = undefined;
 
-				global.location.replace(
+				globalThis.location.replace(
 					new URL(
 						config.encodeUrl(getDestination(location)),
-						new URL(config.prefix, global.location.toString())
-					)
+						new URL(config.prefix, globalThis.location.toString()),
+					),
 				);
 			} catch (err) {
 				compatLayout.current.report(err, errorCause, 'Ultraviolet');
 			}
 		})();
-	}, [compatLayout, location]);
+	}, [compatLayout, location, t]);
 
 	return (
 		<main>
 			<Scripts ref={uvBundle}>
-				<Script src={PUBLIC_PATH + '/uv/uv.bundle.js'} />
-				<Script src={PUBLIC_PATH + '/uv/uv.config.js'} />
+				<Script src={`${import.meta.env.VITE_PUBLIC_PATH}/uv/uv.bundle.js`} />
+				<Script src={`${import.meta.env.VITE_PUBLIC_PATH}/uv/uv.config.js`} />
 			</Scripts>
 			{t('loading', { what: 'Ultraviolet' })}
 		</main>

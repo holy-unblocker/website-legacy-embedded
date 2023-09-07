@@ -15,11 +15,18 @@ button {
 h1,
 h2,
 h3 {
-	font-family: 'Montserrat Alternates';
+	font-family: $MontserratAlternates;
 }
 
 :focus-visible {
 	outline: none;
+}
+
+html[data-tab='1'] {
+	a:not([tabIndex='-1']):focus {
+		outline: var(--action) solid 1px;
+		border-radius: 5px;
+	}
 }
 
 * {
@@ -56,7 +63,7 @@ h3 {
 
 #root {
 	width: $fixed-width;
-	font-family: 'Lato';
+	font-family: $Lato;
 	font-weight: 400;
 	color: var(--text);
 	display: flex;

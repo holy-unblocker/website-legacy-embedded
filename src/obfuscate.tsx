@@ -5,7 +5,7 @@ import { create } from 'random-seed';
 import type { HTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { memo } from 'react';
 
-const rand = create(navigator.userAgent + global.location.origin);
+const rand = create(navigator.userAgent + globalThis.location.origin);
 
 const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -60,7 +60,7 @@ export const ObfuscateLayout = () => {
 class ObfuscateContext {
 	rand: RandomSeed;
 	constructor(seed: string) {
-		this.rand = create(seed + navigator.userAgent + global.location.origin);
+		this.rand = create(seed + navigator.userAgent + globalThis.location.origin);
 	}
 	ellipsisClass() {
 		return ellipsisClasses[this.rand(ellipsisClasses.length)];
@@ -88,7 +88,7 @@ class ObfuscateContext {
 				return (
 					<span key={i} className={this.junkClass()}>
 						{String.fromCharCode(
-							chars[chars.length - ci - 1].charCodeAt(0) ^ i
+							chars[chars.length - ci - 1].charCodeAt(0) ^ i,
 						)}
 					</span>
 				);
@@ -124,7 +124,7 @@ export const ObfuscatedText = memo<{ text: string; ellipsis?: boolean }>(
 						content.push(
 							<span key={`${wi}${ci}${i}`} className={context.realClass()}>
 								{char}
-							</span>
+							</span>,
 						);
 					} else {
 						content.push(context.random(chars, i, ci));
@@ -134,7 +134,7 @@ export const ObfuscatedText = memo<{ text: string; ellipsis?: boolean }>(
 				added.push(
 					<span key={`${wi}${ci}`} className={charClass}>
 						{content}
-					</span>
+					</span>,
 				);
 			}
 
@@ -144,7 +144,7 @@ export const ObfuscatedText = memo<{ text: string; ellipsis?: boolean }>(
 					key={`${wi}`}
 				>
 					{added}
-				</span>
+				</span>,
 			);
 
 			if (wi !== words.length - 1) {
@@ -153,7 +153,7 @@ export const ObfuscatedText = memo<{ text: string; ellipsis?: boolean }>(
 		}
 
 		return <span className={stringClass}>{output}</span>;
-	}
+	},
 );
 
 type JSXDataSome = JSXData | JSXData[];
@@ -199,7 +199,7 @@ export const Obfuscated = memo<{ ellipsis?: boolean; children?: ReactNode }>(
 		}
 
 		return <ObfuscatedText text={string} ellipsis={ellipsis}></ObfuscatedText>;
-	}
+	},
 );
 
 export interface ObfuscatedAProps

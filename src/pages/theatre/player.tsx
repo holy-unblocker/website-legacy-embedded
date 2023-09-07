@@ -30,11 +30,10 @@ import { useSearchParams } from 'react-router-dom';
 async function resolveSrc(
 	src: TheatreEntry['src'],
 	type: TheatreEntry['type'],
-	setting: string
 ) {
 	switch (type) {
 		case 'proxy':
-			return await resolveProxy(src, setting);
+			return await resolveProxy(src, 'automatic');
 		case 'embed':
 			return src;
 		case 'flash':
@@ -50,7 +49,7 @@ async function resolveSrc(
 						rom: src,
 						core: 'autodetect',
 					}),
-				THEATRE_CDN
+				THEATRE_CDN,
 			).toString();
 		default:
 			throw new TypeError(`Unrecognized target: ${type}`);
@@ -73,73 +72,67 @@ const Player: HolyPage = () => {
 	if (!id) throw new Error('Bad ID');
 	const [settings, setSettings] = useGlobalSettings();
 	const [favorited, setFavorited] = useState(() =>
-		settings.favorites.includes(id)
+		settings.favorites.includes(id),
 	);
 	const [panorama, setPanorama] = useState(false);
 	const [controlsExpanded, setControlsExpanded] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const errorCause = useRef<string | null>(null);
+	const [error, setError] = useState<{
+		cause?: string;
+		message: string;
+	} | null>(null);
 	const [data, setData] = useState<TheatreEntry | null>(null);
 	const iframe = useRef<HTMLIFrameElement | null>(null);
 	const controlsOpen = useRef<HTMLDivElement | null>(null);
 	const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
 	const controlsPopup = useRef<HTMLDivElement | null>(null);
-	const [seen, _setSeen] = useState(() => settings.seenGames.includes(id));
 	const [iframeFocused, setIFrameFocused] = useState(true);
 
 	useEffect(() => {
 		const abort = new AbortController();
 
-		async function setSeen(value: boolean) {
-			const seen = settings.seenGames;
-
-			if (value) {
-				seen.push(id);
-			} else {
-				const i = seen.indexOf(id);
-				seen.splice(i, 1);
-			}
-
-			setSettings({
-				...settings,
-				seenGames: seen,
-			});
-
-			_setSeen(value);
-		}
-
 		(async function () {
+			let errorCause: string | undefined;
+
 			const api = new TheatreAPI(DB_API, abort.signal);
 
 			try {
-				errorCause.current = 'Unable to fetch game info';
+				errorCause = t('error.player.fetch');
 				const data = await api.show(id);
-				errorCause.current = null;
-				errorCause.current = 'Unable to resolve game location';
+				errorCause = undefined;
+				errorCause = t('error.player.resolve');
 				const resolvedSrc = await resolveSrc(
 					new URL(data.src, THEATRE_CDN).toString(),
 					data.type,
-					settings.proxy
 				);
-				errorCause.current = null;
+				errorCause = undefined;
 				setData(data);
 				setResolvedSrc(resolvedSrc);
 
-				if (!seen) {
-					errorCause.current = 'Unable to update plays';
+				if (!settings.seenGames.includes(id)) {
+					errorCause = t('error.player.plays');
 					await api.plays(id);
-					setSeen(true);
-					errorCause.current = null;
+					const { seenGames } = settings;
+					seenGames.push(id);
+					setSettings({
+						...settings,
+						seenGames,
+					});
+
+					errorCause = undefined;
 				}
 			} catch (err) {
 				if (!isAbortError(err)) {
-					setError(String(err));
+					console.error(err);
+					setError({
+						cause: errorCause,
+						message: String(err),
+					});
 				}
 			}
 		})();
 
 		return () => abort.abort();
-	}, [seen, id, settings, setSettings]);
+	}, [id, settings, setSettings, t]);
 
 	useEffect(() => {
 		function focusListener() {
@@ -161,7 +154,7 @@ const Player: HolyPage = () => {
 	useEffect(() => {
 		if (!iframe.current) return;
 
-		function clickListener(event: Event) {
+		function clickListener() {
 			if (iframeFocused) setIFrameFocused(false);
 		}
 
@@ -199,9 +192,9 @@ const Player: HolyPage = () => {
 			<>
 				<PlayerMeta />
 				<CommonError
-					cause={errorCause.current}
-					error={error}
-					message={t('error.playerEntryLoad')}
+					cause={error.cause}
+					error={error.message}
+					message={t('error.player.errorMessage')}
 				/>
 			</>
 		);
@@ -246,7 +239,7 @@ const Player: HolyPage = () => {
 							<ArrowLeft className={styles.controlKey} />
 							<ArrowDropDown className={styles.controlKey} />
 							<ArrowRight className={styles.controlKey} />
-						</div>
+						</div>,
 					);
 					break;
 				case 'wasd':
@@ -256,7 +249,7 @@ const Player: HolyPage = () => {
 							<div className={styles.controlKey}>A</div>
 							<div className={styles.controlKey}>S</div>
 							<div className={styles.controlKey}>D</div>
-						</div>
+						</div>,
 					);
 					break;
 				default:
@@ -266,7 +259,7 @@ const Player: HolyPage = () => {
 							className={clsx(styles.controlKey, styles[`key${key}`])}
 						>
 							{key}
-						</div>
+						</div>,
 					);
 					break;
 			}
@@ -276,7 +269,7 @@ const Player: HolyPage = () => {
 			<div key={control.label} className={styles.control}>
 				<div className={styles.visuals}>{visuals}</div>
 				<span className={styles.label}>{control.label}</span>
-			</div>
+			</div>,
 		);
 	}
 

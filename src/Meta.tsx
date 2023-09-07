@@ -41,7 +41,7 @@ export interface WebSite {
 }
 
 export interface MetaProps {
-	title?: string;
+	title: string;
 	description?: string;
 	faq?: Question[];
 	actions?: SearchAction[];
@@ -84,9 +84,7 @@ const Meta = ({ title, description, faq, actions }: MetaProps) => {
 
 	return (
 		<Helmet>
-			<title>
-				{cloak.title === '' ? title || 'Holy Unblocker' : cloak.title}
-			</title>
+			<title>{cloak.title === '' ? title : cloak.title}</title>
 			{!OBFUSCATE && description && (
 				<meta name="description" content={description} />
 			)}
@@ -102,7 +100,7 @@ const Meta = ({ title, description, faq, actions }: MetaProps) => {
 					{formatWebSite({
 						url: new URL(
 							getHot('home').path,
-							global.location.toString()
+							globalThis.location.toString(),
 						).toString(),
 						potentialAction: actions,
 					})}

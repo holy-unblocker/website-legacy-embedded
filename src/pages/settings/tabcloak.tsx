@@ -1,96 +1,14 @@
 import type { HolyPage } from '../../App';
 import { useGlobalCloakSettings } from '../../Layout';
 import Meta from '../../Meta';
-import { Notification } from '../../Notifications';
 import { ThemeButton, ThemeInputBar, themeStyles } from '../../ThemeElements';
-import { BARE_API } from '../../consts';
-import i18n from '../../i18n';
+import { extractData } from '../../mask';
 import { Obfuscated } from '../../obfuscate';
 import styles from '../../styles/Settings.module.scss';
 import Check from '@mui/icons-material/Check';
-import BareClient from '@tomphttp/bare-client';
 import clsx from 'clsx';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-
-const bare = new BareClient(BARE_API);
-
-interface ExtractedData {
-	title: string;
-	icon: string;
-	url: string;
-}
-
-async function extractData(url: string): Promise<ExtractedData> {
-	const response = await bare.fetch(url, { redirect: 'follow' });
-
-	if (!response.ok)
-		throw new Error(
-			i18n.t('settings:tabCloak.error.response', { status: response.status })
-		);
-
-	const parser = new DOMParser();
-
-	const dom = parser.parseFromString(`${await response.text()}`, 'text/html');
-
-	const base = document.createElement('base');
-	base.href = url;
-
-	dom.head.append(base);
-
-	let icon: string;
-
-	const iconSelector = dom.querySelector(
-		'link[rel*="icon"]'
-	) as HTMLLinkElement | null;
-
-	if (iconSelector && iconSelector.href !== '') icon = iconSelector.href;
-	else icon = new URL('/favicon.ico', url).toString();
-
-	const outgoing = await bare.fetch(icon);
-
-	icon = await blobToDataURL(
-		new Blob([await outgoing.arrayBuffer()], {
-			type: outgoing.headers.get('content-type')!,
-		})
-	);
-
-	const titleSelector = dom.querySelector('title');
-
-	let title: string;
-
-	if (titleSelector && titleSelector.textContent !== '')
-		title = titleSelector.textContent!;
-	else {
-		const url = new URL(response.finalURL);
-		title = `${url.host}${url.pathname}${url.search}`;
-	}
-
-	return { icon, title, url: response.finalURL };
-}
-
-const whitespace = /\s+/;
-const protocol = /^\w+:/;
-
-function resolveURL(input: string) {
-	if (input.match(protocol)) {
-		return input;
-	} else if (input.includes('.') && !input.match(whitespace)) {
-		return `http://${input}`;
-	} else {
-		throw new Error(i18n.t('settings:tabCloak.error.validate'));
-	}
-}
-
-async function blobToDataURL(blob: Blob) {
-	const reader = new FileReader();
-
-	return new Promise<string>((resolve, reject) => {
-		reader.addEventListener('load', () => resolve(reader.result as string));
-		reader.addEventListener('error', reject);
-		reader.readAsDataURL(blob);
-	});
-}
 
 const TabCloakMeta = () => <Meta title="Tab Cloak Settings" />;
 
@@ -101,57 +19,30 @@ const TabCloak: HolyPage = ({ layout }) => {
 
 	async function onSubmit() {
 		try {
-			const resolved = resolveURL(input.current!.value);
-
-			let title, icon, url;
-
-			switch (resolved) {
-				case 'about:blank':
-					title = 'about:blank';
-					icon = 'none';
-					url = 'about:blank';
-					break;
-				default:
-					layout.current!.notifications.current!.add(
-						<Notification
-							description={t('settings:tabCloak.notification.fetching')}
-							type="info"
-						/>
-					);
-
-					({ title, icon, url } = await extractData(resolved));
-
-					break;
-			}
-
-			input.current!.value = url;
-
-			setCloak({
-				title: title!,
-				icon: icon!,
-				url: url!,
+			layout.current!.notifications.current!({
+				description: t('settings:tabMask.notification.fetching'),
+				type: 'info',
 			});
 
-			layout.current!.notifications.current!.add(
-				<Notification
-					description={t('settings:tabCloak.notification.set')}
-					type="success"
-				/>
-			);
+			const data = await extractData(input.current!.value);
+			input.current!.value = data.url;
+			setCloak(data);
+
+			layout.current!.notifications.current!({
+				description: t('settings:tabMask.notification.set'),
+				type: 'success',
+			});
 		} catch (err) {
 			console.error(err);
 
-			layout.current!.notifications.current!.add(
-				<Notification
-					title={t('settings:tabCloak.notification.failure')}
-					description={
-						err instanceof Error
-							? err.message
-							: (i18n.t('commonError:unknownError') as string)
-					}
-					type="error"
-				/>
-			);
+			layout.current!.notifications.current!({
+				title: t('settings:tabMask.notification.failure'),
+				description:
+					err instanceof Error
+						? err.message
+						: (t('commonError:unknownError') as string),
+				type: 'error',
+			});
 		}
 	}
 
@@ -160,11 +51,11 @@ const TabCloak: HolyPage = ({ layout }) => {
 			<TabCloakMeta />
 			<section>
 				<p>
-					<Obfuscated>{t('settings:tabCloak.description')}</Obfuscated>
+					<Obfuscated>{t('settings:tabMask.description')}</Obfuscated>
 				</p>
 				<div>
 					<p>
-						<Obfuscated>{t('settings:tabCloak.urlField')}</Obfuscated>:
+						<Obfuscated>{t('settings:tabMask.urlField')}</Obfuscated>:
 					</p>
 					<form
 						onSubmit={(event) => {
@@ -197,15 +88,13 @@ const TabCloak: HolyPage = ({ layout }) => {
 
 							input.current!.value = '';
 
-							layout.current!.notifications.current!.add(
-								<Notification
-									description={t('settings:tabCloak.notification.reset')}
-									type="info"
-								/>
-							);
+							layout.current!.notifications.current!({
+								description: t('settings:tabMask.notification.reset'),
+								type: 'info',
+							});
 						}}
 					>
-						<Obfuscated>{t('settings:tabCloak.resetButton')}</Obfuscated>
+						<Obfuscated>{t('settings:tabMask.resetButton')}</Obfuscated>
 					</ThemeButton>
 				</div>
 			</section>

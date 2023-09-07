@@ -2,7 +2,6 @@ import type { HolyPage } from '../../App';
 import { getDestination } from '../../CompatLayout';
 import { RammerheadAPI, StrShuffler } from '../../RammerheadAPI';
 import { RH_API } from '../../consts';
-import i18n from '../../i18n';
 import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,33 +25,33 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 				const api = new RammerheadAPI(RH_API);
 
 				// according to our NGINX config
-				if (process.env.NODE_ENV === 'production') {
+				if (import.meta.env.NODE_ENV === 'production') {
 					Cookies.set('auth_proxy', '1', {
-						domain: `.${global.location.host}`,
+						domain: `.${globalThis.location.host}`,
 						expires: 1000 * 60 * 60 * 24 * 7, // 1 week
-						secure: global.location.protocol === 'https:',
+						secure: globalThis.location.protocol === 'https:',
 						sameSite: 'lax',
 					});
 
-					Cookies.set('origin_proxy', global.location.origin, {
+					Cookies.set('origin_proxy', globalThis.location.origin, {
 						expires: 1000 * 60 * 60 * 24 * 7, // 1 week
-						secure: global.location.protocol === 'https:',
+						secure: globalThis.location.protocol === 'https:',
 						sameSite: 'lax',
 					});
 				}
 
-				errorCause = i18n.t('compat:error.unreachable', { what: 'Rammerhead' });
+				errorCause = t('error.unreachable', { what: 'Rammerhead' });
 				await fetch(RH_API);
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat:error.rammerheadSavedSession');
+				errorCause = t('error.rammerheadSavedSession');
 
 				if (
 					localStorage.rammerhead_session &&
 					(await api.sessionExists(localStorage.rammerhead_session))
 				) {
 					const test = await fetch(
-						new URL(localStorage.rammerhead_session, RH_API)
+						new URL(localStorage.rammerhead_session, RH_API),
 					);
 
 					await api.deleteSession(localStorage.rammerhead_session);
@@ -63,34 +62,34 @@ const Rammerhead: HolyPage = ({ compatLayout }) => {
 					delete localStorage.rammerhead_session;
 				}
 
-				errorCause = i18n.t('compat:error.rammerheadNewSession');
+				errorCause = t('error.rammerheadNewSession');
 				const session =
 					localStorage.rammerhead_session || (await api.newSession());
 				errorCause = undefined;
 
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat:error.rammerheadEditSession');
+				errorCause = t('error.rammerheadEditSession');
 				await api.editSession(session, false, true);
 				errorCause = undefined;
 
-				errorCause = i18n.t('compat:error.rammerheadDict');
+				errorCause = t('error.rammerheadDict');
 				const dict = await api.shuffleDict(session);
 				errorCause = undefined;
 
 				const shuffler = new StrShuffler(dict);
 
-				global.location.replace(
+				globalThis.location.replace(
 					new URL(
 						`${session}/${patch(shuffler.shuffle(getDestination(location)))}`,
-						RH_API
-					)
+						RH_API,
+					),
 				);
 			} catch (err) {
 				compatLayout.current!.report(err, errorCause, 'Rammerhead');
 			}
 		})();
-	}, [compatLayout, location]);
+	}, [compatLayout, location, t]);
 
 	return <main>{t('loading', { what: 'Rammerhead' })}</main>;
 };

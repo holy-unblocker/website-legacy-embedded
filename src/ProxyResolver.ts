@@ -1,32 +1,15 @@
 import CompatAPI from './CompatAPI';
-import { isDatabaseError } from './DatabaseAPI';
 import { DB_API, DEFAULT_PROXY } from './consts';
 import { encryptURL } from './cryptURL';
+import { isError } from './isAbortError';
 import { getHot } from './routes';
 
-export default async function resolveProxy(src: string, setting: string) {
-	if (setting === 'automatic') {
-		const { host } = new URL(src);
-		const api = new CompatAPI(DB_API);
+export type FixedProxy = 'ultraviolet' | 'rammerhead';
 
-		try {
-			setting = (await api.compat(host)).proxy;
-		} catch (err) {
-			setting = DEFAULT_PROXY;
-
-			if (!isDatabaseError(err) || err.message === 'Not Found') {
-				// ignore error to allow loading proxy regardless of errors
-				console.error('Failure fetching Compat data:', err);
-			}
-		}
-	}
-
+export function resolveProxyFixed(src: string, setting: FixedProxy) {
 	let route;
 
 	switch (setting) {
-		case 'stomp':
-			route = getHot('compat stomp').path;
-			break;
 		case 'ultraviolet':
 			route = getHot('compat ultraviolet').path;
 			break;
@@ -37,4 +20,28 @@ export default async function resolveProxy(src: string, setting: string) {
 	}
 
 	return `${route}#${encryptURL(src)}`;
+}
+
+export default async function resolveProxy(
+	src: string,
+	setting: string,
+	signal?: AbortSignal,
+) {
+	if (setting === 'automatic') {
+		const { host } = new URL(src);
+		const api = new CompatAPI(DB_API, signal);
+
+		try {
+			setting = (await api.compat(host)).proxy;
+		} catch (err) {
+			if (isError(err) && err.message === 'Not Found') {
+				setting = DEFAULT_PROXY;
+			} else {
+				console.error(err);
+				throw err;
+			}
+		}
+	}
+
+	return resolveProxyFixed(src, setting as FixedProxy);
 }

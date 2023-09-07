@@ -32,8 +32,13 @@
 	}
 }
 
-.nav > .button,
-.content > .menu > .top > .button {
+html[data-tab='1'] {
+	.button:not([tabIndex='-1']):focus {
+		outline: var(--action) solid 2px;
+	}
+}
+
+.button {
 	box-sizing: content-box;
 	border: none;
 	background: none;
@@ -111,7 +116,9 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		transition: opacity 0.3s, visibility 0.3s;
+		transition:
+			opacity 0.3s,
+			visibility 0.3s;
 		opacity: 0;
 		visibility: hidden;
 	}
@@ -129,7 +136,9 @@
 		height: 100vh;
 		box-sizing: border-box;
 		transform: translateX(-100%);
-		transition: transform 0.3s, visibility 0.3s 0.3s;
+		transition:
+			transform 0.3s,
+			visibility 0.3s 0.3s;
 		overflow: hidden;
 
 		@include screenMobile {
@@ -159,6 +168,12 @@
 			flex-shrink: 0;
 			position: relative;
 		}
+	}
+}
+
+html[data-tab='1'] {
+	.menuList > .entry:focus {
+		outline: var(--action) solid 2px;
 	}
 }
 
@@ -254,7 +269,7 @@
 			border: 1px solid var(--border);
 			border-radius: 5px;
 			font-size: 13px;
-			font-family: 'Montserrat Alternates';
+			font-family: $MontserratAlternates;
 			color: var(--text-placeholder);
 			white-space: nowrap;
 
@@ -289,4 +304,14 @@ html[data-expanded='1'] {
 			}
 		}
 	}
+}
+
+.new {
+	line-height: 1em;
+	padding: 2px 5px;
+	margin-left: 5px;
+	border-radius: 10px;
+	background-color: var(--error);
+	color: white;
+	font-size: 12px;
 }
