@@ -1,4 +1,10 @@
-# Holy Unblocker website
+# Holy Unblocker: Legacy Embedded Frontend
+
+> Check out the [new frontend, website2, written in Astro](https://github.com/holywebwork/website2).
+
+All the code provided here is no longer officially supported, and we encourage you to host the new version.
+
+## <img src="docs/react-sucks.gif" alt="React sux!!!!!" height="80px">
 
 ## Why the fork?
 
